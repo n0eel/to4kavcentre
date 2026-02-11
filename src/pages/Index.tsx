@@ -24,18 +24,25 @@ const Index = () => {
           {activeCategoryName}
         </h2>
 
-        <div className="space-y-3" key={activeCategory}>
-          {filteredItems.map((item, i) => (
-            <MenuItemCard
-              key={item.id}
-              item={item}
-              quantity={getQuantity(item.id)}
-              onAdd={() => addItem(item.id)}
-              onRemove={() => removeItem(item.id)}
-              index={i}
-            />
-          ))}
-        </div>
+        {activeCategory === "promo" && filteredItems.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <span className="text-4xl block mb-3">🔥</span>
+            <p className="text-sm">Акции скоро появятся!</p>
+          </div>
+        ) : (
+          <div className="space-y-3" key={activeCategory}>
+            {filteredItems.map((item, i) => (
+              <MenuItemCard
+                key={item.id}
+                item={item}
+                quantity={getQuantity(item.id)}
+                onAdd={() => addItem(item.id)}
+                onRemove={() => removeItem(item.id)}
+                index={i}
+              />
+            ))}
+          </div>
+        )}
       </main>
 
       <CartDrawer
