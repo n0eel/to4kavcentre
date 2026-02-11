@@ -39,7 +39,7 @@ export const menuItems: MenuItem[] = [
   { id: "tea-lemon", name: "Чай с лимоном", price: 10000, category: "hot-drinks" },
   { id: "tea-raspberry", name: "Чай с малиной", price: 15000, category: "hot-drinks" },
   { id: "coffee-3in1", name: "Кофе 3в1", volume: "0.4л", price: 6000, category: "hot-drinks" },
-  { id: "coffee-chocolate", name: "Кофе с шоколадом", price: 6000, category: "promo" },
+  { id: "coffee-chocolate", name: "Кофе с шоколадом", price: 6000, category: "hot-drinks" },
   { id: "latte", name: "Латте", price: 0, category: "hot-drinks" },
   { id: "cappuccino", name: "Капучино", price: 0, category: "hot-drinks" },
   { id: "espresso", name: "Эспрессо", price: 0, category: "hot-drinks" },
