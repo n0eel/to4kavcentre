@@ -59,7 +59,7 @@ export const menuItems: MenuItem[] = [
   { id: "french-breakfast", name: "Французский завтрак", price: 34000, category: "breakfast" },
   { id: "soviet-breakfast", name: "Советский завтрак", price: 15000, category: "breakfast" },
   { id: "pp-breakfast", name: "ПП-Завтрак", price: 15000, category: "breakfast" },
-  { id: "pancakes", name: "Блины", price: 0, variants: [{ volume: "с творогом", price: 3000 }, { volume: "с нутеллой", price: 5000 }, { volume: "с вареньем", price: 4000 }], category: "breakfast" },
+  { id: "pancakes", name: "Блины", price: 6000, category: "breakfast", description: "с творогом / нутеллой / вареньем" },
   { id: "syrniki", name: "Сырники", price: 0, category: "breakfast" },
   { id: "potato-pies", name: "Пирожки с картошкой", price: 5000, category: "breakfast" },
   { id: "meat-pies", name: "Пирожки с мясом", price: 8000, category: "breakfast" },
