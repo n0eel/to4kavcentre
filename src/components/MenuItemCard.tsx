@@ -32,10 +32,11 @@ const MenuItemCard = ({ item, quantity, onAdd, onRemove, index }: MenuItemCardPr
         {/* Icon / color circle */}
         <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center flex-shrink-0">
           <span className="text-2xl">
-            {item.category === "coffee" ? "☕" :
-             item.category === "tea" ? "🍵" :
-             item.category === "ice-coffee" ? "🧊" :
-             item.category === "cold" ? "🍋" : "🥛"}
+            {item.category === "hot-drinks" ? "☕" :
+             item.category === "cold-drinks" ? "🥤" :
+             item.category === "breakfast" ? "🍳" :
+             item.category === "fastfood" ? "🍔" :
+             item.category === "desserts" ? "🍰" : "🔥"}
           </span>
         </div>
 
@@ -44,9 +45,14 @@ const MenuItemCard = ({ item, quantity, onAdd, onRemove, index }: MenuItemCardPr
           <h3 className="font-display text-sm font-semibold text-foreground leading-tight truncate">
             {item.name}
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">{item.volume}</p>
+          {item.volume && <p className="text-xs text-muted-foreground mt-0.5">{item.volume}</p>}
+          {item.description && <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>}
           <p className="text-sm font-semibold text-primary mt-1">
-            {formatPrice(item.price)} <span className="text-xs font-normal text-muted-foreground">сум</span>
+            {item.price > 0 ? (
+              <>{formatPrice(item.price)} <span className="text-xs font-normal text-muted-foreground">сум</span></>
+            ) : (
+              <span className="text-xs font-normal text-muted-foreground">уточняйте</span>
+            )}
           </p>
         </div>
 
