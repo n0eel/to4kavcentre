@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { menuItems } from "@/data/menu";
+import { menuItems, parseCartKey, getItemPrice, getItemVolume } from "@/data/menu";
 import { Minus, Plus, Trash2, ShoppingBag, Send, Loader2 } from "lucide-react";
 import {
   Sheet,
@@ -23,19 +23,23 @@ const CartDrawer = ({ cart, totalItems, onAdd, onRemove, onClear }: CartDrawerPr
   const [sending, setSending] = useState(false);
 
   const cartEntries = Object.entries(cart)
-    .map(([id, qty]) => {
-      const item = menuItems.find((m) => m.id === id);
-      return item ? { ...item, quantity: qty } : null;
+    .map(([key, qty]) => {
+      const { itemId, variantIndex } = parseCartKey(key);
+      const item = menuItems.find((m) => m.id === itemId);
+      if (!item) return null;
+      const price = getItemPrice(item, variantIndex);
+      const volume = getItemVolume(item, variantIndex);
+      return { cartKey: key, name: item.name, volume, price, quantity: qty };
     })
-    .filter(Boolean) as (typeof menuItems[number] & { quantity: number })[];
+    .filter(Boolean) as { cartKey: string; name: string; volume: string; price: number; quantity: number }[];
 
-  const totalPrice = cartEntries.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalPrice = cartEntries.reduce((sum, e) => sum + e.price * e.quantity, 0);
 
   const handleSendOrder = async () => {
     if (cartEntries.length === 0) return;
     setSending(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-telegram-order', {
+      const { error } = await supabase.functions.invoke('send-telegram-order', {
         body: {
           items: cartEntries.map(i => ({ name: i.name, quantity: i.quantity, price: i.price, volume: i.volume })),
           total: totalPrice,
@@ -96,34 +100,34 @@ const CartDrawer = ({ cart, totalItems, onAdd, onRemove, onClear }: CartDrawerPr
             </SheetHeader>
 
             <div className="overflow-y-auto max-h-[55vh] px-5 py-3 space-y-2">
-              {cartEntries.map((item) => (
+              {cartEntries.map((entry) => (
                 <div
-                  key={item.id}
+                  key={entry.cartKey}
                   className="flex items-center gap-3 bg-card/60 border border-gold/10 rounded-xl p-3 animate-fade-in"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="font-body font-medium text-sm text-foreground truncate">
-                      {item.name}
+                      {entry.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">{item.volume}</p>
+                    {entry.volume && <p className="text-xs text-muted-foreground">{entry.volume}</p>}
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => onRemove(item.id)}
+                      onClick={() => onRemove(entry.cartKey)}
                       className="w-7 h-7 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
                     >
-                      {item.quantity === 1 ? (
+                      {entry.quantity === 1 ? (
                         <Trash2 className="w-3.5 h-3.5" />
                       ) : (
                         <Minus className="w-3.5 h-3.5" />
                       )}
                     </button>
                     <span className="w-6 text-center font-display font-bold text-sm text-foreground">
-                      {item.quantity}
+                      {entry.quantity}
                     </span>
                     <button
-                      onClick={() => onAdd(item.id)}
+                      onClick={() => onAdd(entry.cartKey)}
                       className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary hover:bg-primary/30 transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -131,7 +135,7 @@ const CartDrawer = ({ cart, totalItems, onAdd, onRemove, onClear }: CartDrawerPr
                   </div>
 
                   <p className="text-sm font-display font-semibold text-gold min-w-[60px] text-right">
-                    {(item.price * item.quantity).toLocaleString("ru-RU")}
+                    {(entry.price * entry.quantity).toLocaleString("ru-RU")}
                   </p>
                 </div>
               ))}

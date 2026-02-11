@@ -35,9 +35,9 @@ const Index = () => {
               <MenuItemCard
                 key={item.id}
                 item={item}
-                quantity={getQuantity(item.id)}
-                onAdd={() => addItem(item.id)}
-                onRemove={() => removeItem(item.id)}
+                getQuantity={getQuantity}
+                onAdd={addItem}
+                onRemove={removeItem}
                 index={i}
               />
             ))}
