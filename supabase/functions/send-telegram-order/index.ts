@@ -27,12 +27,13 @@ serve(async (req) => {
 
     const CHAT_ID = '-1003742140185';
 
-    let message = '🧾 *Новый заказ — To4kavcentre*\n\n';
+    let message = '🧾 <b>Новый заказ — To4kavcentre</b>\n\n';
     items.forEach((item: { name: string; quantity: number; price: number; volume: string }, i: number) => {
       const subtotal = item.price * item.quantity;
-      message += `${i + 1}\\. ${item.name} \\(${item.volume}\\) × ${item.quantity} — ${subtotal.toLocaleString('ru-RU')} сум\n`;
+      const volPart = item.volume ? ` (${item.volume})` : '';
+      message += `${i + 1}. ${item.name}${volPart} × ${item.quantity} — ${subtotal.toLocaleString('ru-RU')} сум\n`;
     });
-    message += `\n💰 *Итого: ${total.toLocaleString('ru-RU')} сум*`;
+    message += `\n💰 <b>Итого: ${total.toLocaleString('ru-RU')} сум</b>`;
 
     const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
     const res = await fetch(telegramUrl, {
@@ -41,7 +42,7 @@ serve(async (req) => {
       body: JSON.stringify({
         chat_id: CHAT_ID,
         text: message,
-        parse_mode: 'MarkdownV2',
+        parse_mode: 'HTML',
       }),
     });
 
