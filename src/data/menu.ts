@@ -78,7 +78,7 @@ export const menuItems: MenuItem[] = [
   { id: "pryaniki", name: "Пряники", price: 0, category: "desserts" },
   { id: "vienna-waffles", name: "Венские вафли", price: 0, category: "desserts", description: "с нутеллой / бананом / клубникой" },
   { id: "san-sebastian", name: "Сан-Себастьян", price: 0, category: "desserts" },
-  { id: "buns", name: "Булочки", price: 8000, category: "desserts" },
+  { id: "buns", name: "Булочки", variants: [{ price: 4000 }, { price: 8000 }], category: "desserts" },
   { id: "zebra", name: "Зерба", price: 6000, category: "desserts" },
     
   // Акции
