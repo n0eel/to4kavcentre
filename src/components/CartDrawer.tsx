@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { menuItems, parseCartKey, getItemPrice, getItemVolume } from "@/data/menu";
+import { CustomItem } from "@/hooks/useCart";
 import { Minus, Plus, Trash2, ShoppingBag, Send, Loader2 } from "lucide-react";
 import {
   Sheet,
@@ -13,17 +14,24 @@ import { toast } from "sonner";
 
 interface CartDrawerProps {
   cart: Record<string, number>;
+  customItems: Record<string, CustomItem>;
   totalItems: number;
   onAdd: (id: string) => void;
   onRemove: (id: string) => void;
   onClear: () => void;
 }
 
-const CartDrawer = ({ cart, totalItems, onAdd, onRemove, onClear }: CartDrawerProps) => {
+const CartDrawer = ({ cart, customItems, totalItems, onAdd, onRemove, onClear }: CartDrawerProps) => {
   const [sending, setSending] = useState(false);
 
   const cartEntries = Object.entries(cart)
     .map(([key, qty]) => {
+      // Custom items
+      if (key.startsWith("custom::")) {
+        const ci = customItems[key];
+        if (!ci) return null;
+        return { cartKey: key, name: ci.name, volume: "", price: ci.price, quantity: qty };
+      }
       const { itemId, variantIndex } = parseCartKey(key);
       const item = menuItems.find((m) => m.id === itemId);
       if (!item) return null;

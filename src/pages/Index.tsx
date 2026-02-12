@@ -2,13 +2,14 @@ import { useState } from "react";
 import MenuHeader from "@/components/MenuHeader";
 import CategoryNav from "@/components/CategoryNav";
 import MenuItemCard from "@/components/MenuItemCard";
+import CustomItemCard from "@/components/CustomItemCard";
 import CartDrawer from "@/components/CartDrawer";
 import { menuItems, categories } from "@/data/menu";
 import { useCart } from "@/hooks/useCart";
 
 const Index = () => {
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
-  const { cart, addItem, removeItem, getQuantity, totalItems, clearCart } = useCart();
+  const { cart, customItems, addItem, removeItem, addCustomItem, getQuantity, totalItems, clearCart } = useCart();
 
   const filteredItems = menuItems.filter((item) => item.category === activeCategory);
   const activeCategoryName = categories.find((c) => c.id === activeCategory)?.name || "";
@@ -41,12 +42,14 @@ const Index = () => {
                 index={i}
               />
             ))}
+            <CustomItemCard onAddCustom={addCustomItem} />
           </div>
         )}
       </main>
 
       <CartDrawer
         cart={cart}
+        customItems={customItems}
         totalItems={totalItems}
         onAdd={addItem}
         onRemove={removeItem}

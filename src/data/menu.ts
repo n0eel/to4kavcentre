@@ -1,5 +1,5 @@
 export interface MenuVariant {
-  volume: string;
+  volume?: string;
   price: number;
 }
 
@@ -110,7 +110,7 @@ export function getItemPrice(item: MenuItem, variantIndex?: number): number {
 
 export function getItemVolume(item: MenuItem, variantIndex?: number): string {
   if (item.variants && variantIndex !== undefined) {
-    return item.variants[variantIndex].volume;
+    return item.variants[variantIndex].volume ?? "";
   }
   return item.volume ?? "";
 }
