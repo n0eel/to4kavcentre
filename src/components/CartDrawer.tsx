@@ -39,11 +39,17 @@ const CartDrawer = ({ cart, totalItems, onAdd, onRemove, onClear }: CartDrawerPr
     if (cartEntries.length === 0) return;
     setSending(true);
     try {
+      const orderItems = cartEntries.map(i => ({ name: i.name, quantity: i.quantity, price: i.price, volume: i.volume }));
+
+      // Save order to database for daily reporting
+      const { error: dbError } = await supabase
+        .from('orders')
+        .insert({ items: orderItems, total: totalPrice });
+      if (dbError) console.error('Failed to save order to DB:', dbError);
+
+      // Send to Telegram
       const { error } = await supabase.functions.invoke('send-telegram-order', {
-        body: {
-          items: cartEntries.map(i => ({ name: i.name, quantity: i.quantity, price: i.price, volume: i.volume })),
-          total: totalPrice,
-        },
+        body: { items: orderItems, total: totalPrice },
       });
       if (error) throw error;
       toast.success('Заказ отправлен!');

@@ -2,3 +2,6 @@ project_id = "enwedakirzixdeqkqnxb"
 
 [functions.send-telegram-order]
 verify_jwt = false
+
+[functions.send-daily-report]
+verify_jwt = false
