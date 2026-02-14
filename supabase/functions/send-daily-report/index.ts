@@ -21,16 +21,14 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Tashkent is UTC+5. Get today's date range in Tashkent time.
+    // Tashkent is UTC+5
     const nowUTC = new Date();
     const tashkentOffset = 5 * 60 * 60 * 1000;
     const nowTashkent = new Date(nowUTC.getTime() + tashkentOffset);
 
-    // Start of today in Tashkent (midnight), converted back to UTC
     const startOfDayTashkent = new Date(nowTashkent);
     startOfDayTashkent.setUTCHours(0, 0, 0, 0);
     const startUTC = new Date(startOfDayTashkent.getTime() - tashkentOffset);
-
     const endUTC = new Date(startUTC.getTime() + 24 * 60 * 60 * 1000);
 
     const { data: orders, error } = await supabase
@@ -42,17 +40,47 @@ serve(async (req) => {
     if (error) throw error;
 
     const totalOrders = orders?.length ?? 0;
-    const totalSum = orders?.reduce((sum: number, o: { total: number }) => sum + o.total, 0) ?? 0;
+    const totalSum = orders?.reduce((sum: number, o: any) => sum + o.total, 0) ?? 0;
+
+    // Payment stats
+    const cashOrders = orders?.filter((o: any) => o.payment_method === 'cash') ?? [];
+    const cardOrders = orders?.filter((o: any) => o.payment_method === 'card') ?? [];
+    const cashSum = cashOrders.reduce((s: number, o: any) => s + o.total, 0);
+    const cardSum = cardOrders.reduce((s: number, o: any) => s + o.total, 0);
+
+    // Product stats
+    const productMap: Record<string, { qty: number; sum: number }> = {};
+    for (const order of (orders ?? [])) {
+      const items = order.items as any[];
+      if (!Array.isArray(items)) continue;
+      for (const item of items) {
+        const key = item.name || 'Неизвестно';
+        if (!productMap[key]) productMap[key] = { qty: 0, sum: 0 };
+        productMap[key].qty += item.quantity || 0;
+        productMap[key].sum += (item.price || 0) * (item.quantity || 0);
+      }
+    }
 
     const dateStr = `${String(nowTashkent.getUTCDate()).padStart(2, '0')}.${String(nowTashkent.getUTCMonth() + 1).padStart(2, '0')}.${nowTashkent.getUTCFullYear()}`;
 
-    let message = `📊 <b>Дневной отчёт — ${dateStr}</b>\n\n`;
-    message += `📦 Количество заказов: <b>${totalOrders}</b>\n`;
-    message += `💰 Общая сумма: <b>${totalSum.toLocaleString('ru-RU')} сум</b>`;
+    let message = `📊 <b>Итоги дня — ${dateStr}</b>\n\n`;
+    message += `📦 Заказов было: <b>${totalOrders}</b>\n\n`;
 
-    if (totalOrders === 0) {
-      message += `\n\nЗаказов сегодня не было.`;
+    message += `💵 Оплата наличными:\n`;
+    message += `${cashOrders.length} заказов — ${cashSum.toLocaleString('ru-RU')} сум\n\n`;
+
+    message += `💳 Оплата картой:\n`;
+    message += `${cardOrders.length} заказов — ${cardSum.toLocaleString('ru-RU')} сум\n\n`;
+
+    message += `———\n\n`;
+
+    const productEntries = Object.entries(productMap).sort((a, b) => b[1].sum - a[1].sum);
+    for (const [name, stats] of productEntries) {
+      message += `${name} × ${stats.qty} — ${stats.sum.toLocaleString('ru-RU')} сум\n`;
     }
+
+    message += `\n———\n\n`;
+    message += `💰 <b>Итого за день: ${totalSum.toLocaleString('ru-RU')} сум</b>`;
 
     const CHAT_ID = '-1003742140185';
     const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;

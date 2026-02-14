@@ -9,6 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -23,6 +24,8 @@ interface CartDrawerProps {
 
 const CartDrawer = ({ cart, customItems, totalItems, onAdd, onRemove, onClear }: CartDrawerProps) => {
   const [sending, setSending] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "card">("cash");
+  const [manualOrderNumber, setManualOrderNumber] = useState("");
 
   const cartEntries = Object.entries(cart)
     .map(([key, qty]) => {
@@ -49,19 +52,32 @@ const CartDrawer = ({ cart, customItems, totalItems, onAdd, onRemove, onClear }:
     try {
       const orderItems = cartEntries.map(i => ({ name: i.name, quantity: i.quantity, price: i.price, volume: i.volume }));
 
-      // Save order to database for daily reporting
+      // Get auto order number
+      const { data: autoNum } = await supabase.rpc('next_order_number');
+      const orderNumber = manualOrderNumber.trim()
+        ? parseInt(manualOrderNumber.trim(), 10) || autoNum || 1
+        : (autoNum || 1);
+
+      // Save order to database
       const { error: dbError } = await supabase
         .from('orders')
-        .insert({ items: orderItems, total: totalPrice });
+        .insert({
+          items: orderItems,
+          total: totalPrice,
+          order_number: orderNumber,
+          payment_method: paymentMethod,
+        });
       if (dbError) console.error('Failed to save order to DB:', dbError);
 
       // Send to Telegram
       const { error } = await supabase.functions.invoke('send-telegram-order', {
-        body: { items: orderItems, total: totalPrice },
+        body: { items: orderItems, total: totalPrice, order_number: orderNumber, payment_method: paymentMethod },
       });
       if (error) throw error;
-      toast.success('Заказ отправлен!');
+      toast.success(`Заказ №${orderNumber} отправлен!`);
       onClear();
+      setManualOrderNumber("");
+      setPaymentMethod("cash");
     } catch (e) {
       console.error(e);
       toast.error('Ошибка отправки заказа');
@@ -156,6 +172,40 @@ const CartDrawer = ({ cart, customItems, totalItems, onAdd, onRemove, onClear }:
             </div>
 
             <div className="px-5 pt-3 pb-5 border-t border-gold/10 space-y-3">
+              {/* Manual order number */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">
+                  Указать номер заказа (необязательно)
+                </label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={manualOrderNumber}
+                  onChange={(e) => setManualOrderNumber(e.target.value)}
+                  placeholder="Авто"
+                  className="w-full bg-muted/30 border border-gold/10 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50"
+                />
+              </div>
+
+              {/* Payment method */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-2 block">Способ оплаты</label>
+                <RadioGroup
+                  value={paymentMethod}
+                  onValueChange={(v) => setPaymentMethod(v as "cash" | "card")}
+                  className="flex gap-4"
+                >
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem value="cash" />
+                    <span className="text-sm text-foreground">💵 Наличные</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem value="card" />
+                    <span className="text-sm text-foreground">💳 Карта</span>
+                  </label>
+                </RadioGroup>
+              </div>
+
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Итого</span>
                 <p className="text-xl font-display font-bold text-cream">

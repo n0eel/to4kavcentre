@@ -19,18 +19,24 @@ export type Database = {
           created_at: string
           id: string
           items: Json
+          order_number: number | null
+          payment_method: string
           total: number
         }
         Insert: {
           created_at?: string
           id?: string
           items: Json
+          order_number?: number | null
+          payment_method?: string
           total: number
         }
         Update: {
           created_at?: string
           id?: string
           items?: Json
+          order_number?: number | null
+          payment_method?: string
           total?: number
         }
         Relationships: []
@@ -40,7 +46,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      next_order_number: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never
