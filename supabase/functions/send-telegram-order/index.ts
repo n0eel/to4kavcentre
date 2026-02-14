@@ -16,7 +16,7 @@ serve(async (req) => {
       throw new Error('TELEGRAM_BOT_TOKEN is not configured');
     }
 
-    const { items, total } = await req.json();
+    const { items, total, order_number, payment_method } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return new Response(JSON.stringify({ error: 'No items provided' }), {
@@ -26,13 +26,15 @@ serve(async (req) => {
     }
 
     const CHAT_ID = '-1003742140185';
+    const paymentLabel = payment_method === 'card' ? 'Карта' : 'Наличные';
 
-    let message = '🧾 <b>Новый заказ — To4kavcentre</b>\n\n';
+    let message = `🧾 <b>Заказ №${order_number}</b>\n\n`;
     items.forEach((item: { name: string; quantity: number; price: number; volume: string }, i: number) => {
       const subtotal = item.price * item.quantity;
       const volPart = item.volume ? ` (${item.volume})` : '';
-      message += `${i + 1}. ${item.name}${volPart} × ${item.quantity} — ${subtotal.toLocaleString('ru-RU')} сум\n`;
+      message += `${item.name}${volPart} × ${item.quantity} — ${subtotal.toLocaleString('ru-RU')} сум\n`;
     });
+    message += `\n💳 <b>Способ оплаты: ${paymentLabel}</b>`;
     message += `\n💰 <b>Итого: ${total.toLocaleString('ru-RU')} сум</b>`;
 
     const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
