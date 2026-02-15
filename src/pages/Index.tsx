@@ -4,20 +4,32 @@ import CategoryNav from "@/components/CategoryNav";
 import MenuItemCard from "@/components/MenuItemCard";
 import CustomItemCard from "@/components/CustomItemCard";
 import CartDrawer from "@/components/CartDrawer";
-import { menuItems, categories } from "@/data/menu";
+import { useMenu } from "@/hooks/useMenu";
 import { useCart } from "@/hooks/useCart";
 
 const Index = () => {
-  const [activeCategory, setActiveCategory] = useState(categories[0].id);
+  const { categories, menuItems, loading } = useMenu();
+  const [activeCategory, setActiveCategory] = useState("");
   const { cart, customItems, addItem, removeItem, addCustomItem, getQuantity, totalItems, clearCart } = useCart();
 
-  const filteredItems = menuItems.filter((item) => item.category === activeCategory);
-  const activeCategoryName = categories.find((c) => c.id === activeCategory)?.name || "";
+  // Set default category once loaded
+  const effectiveCategory = activeCategory || (categories.length > 0 ? categories[0].id : "");
+
+  const filteredItems = menuItems.filter((item) => item.category === effectiveCategory);
+  const activeCategoryName = categories.find((c) => c.id === effectiveCategory)?.name || "";
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Загрузка меню...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto relative">
       <MenuHeader />
-      <CategoryNav activeCategory={activeCategory} onSelect={setActiveCategory} />
+      <CategoryNav categories={categories} activeCategory={effectiveCategory} onSelect={setActiveCategory} />
 
       <main className="px-4 pt-4 pb-28">
         <h2 className="font-display text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
@@ -25,13 +37,13 @@ const Index = () => {
           {activeCategoryName}
         </h2>
 
-        {activeCategory === "promo" && filteredItems.length === 0 ? (
+        {effectiveCategory === "promo" && filteredItems.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <span className="text-4xl block mb-3">🔥</span>
             <p className="text-sm">Акции скоро появятся!</p>
           </div>
         ) : (
-          <div className="space-y-3" key={activeCategory}>
+          <div className="space-y-3" key={effectiveCategory}>
             {filteredItems.map((item, i) => (
               <MenuItemCard
                 key={item.id}
@@ -54,6 +66,7 @@ const Index = () => {
         onAdd={addItem}
         onRemove={removeItem}
         onClear={clearCart}
+        menuItems={menuItems}
       />
     </div>
   );

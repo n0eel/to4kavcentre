@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { menuItems, parseCartKey, getItemPrice, getItemVolume } from "@/data/menu";
+import { MenuItem, parseCartKey, getItemPrice, getItemVolume } from "@/data/menu";
 import { CustomItem } from "@/hooks/useCart";
 import { Minus, Plus, Trash2, ShoppingBag, Send, Loader2 } from "lucide-react";
 import {
@@ -20,9 +20,10 @@ interface CartDrawerProps {
   onAdd: (id: string) => void;
   onRemove: (id: string) => void;
   onClear: () => void;
+  menuItems: MenuItem[];
 }
 
-const CartDrawer = ({ cart, customItems, totalItems, onAdd, onRemove, onClear }: CartDrawerProps) => {
+const CartDrawer = ({ cart, customItems, totalItems, onAdd, onRemove, onClear, menuItems }: CartDrawerProps) => {
   const [sending, setSending] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "card">("cash");
   const [manualOrderNumber, setManualOrderNumber] = useState("");

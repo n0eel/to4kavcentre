@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          emoji: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          emoji?: string
+          id: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          emoji?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      menu_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          name: string
+          price: number | null
+          variants: Json | null
+          volume: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id: string
+          image?: string | null
+          name: string
+          price?: number | null
+          variants?: Json | null
+          volume?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          name?: string
+          price?: number | null
+          variants?: Json | null
+          volume?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_category_fkey"
+            columns: ["category"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string

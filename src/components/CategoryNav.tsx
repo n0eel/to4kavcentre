@@ -1,12 +1,13 @@
-import { categories } from "@/data/menu";
 import { useRef, useEffect } from "react";
+import { Category } from "@/data/menu";
 
 interface CategoryNavProps {
+  categories: Category[];
   activeCategory: string;
   onSelect: (id: string) => void;
 }
 
-const CategoryNav = ({ activeCategory, onSelect }: CategoryNavProps) => {
+const CategoryNav = ({ categories, activeCategory, onSelect }: CategoryNavProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
