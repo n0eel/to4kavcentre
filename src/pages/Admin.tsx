@@ -2,13 +2,8 @@ import { useState } from "react";
 import { useMenu } from "@/hooks/useMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Trash2, Plus, ArrowLeft, X } from "lucide-react";
+import { Trash2, Plus, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-
-interface Variant {
-  volume: string;
-  price: string;
-}
 
 const Admin = () => {
   const { categories, menuItems, loading, refetch } = useMenu();
@@ -19,55 +14,24 @@ const Admin = () => {
   const [description, setDescription] = useState("");
   const [volume, setVolume] = useState("");
   const [adding, setAdding] = useState(false);
-  const [useVariants, setUseVariants] = useState(false);
-  const [variants, setVariants] = useState<Variant[]>([{ volume: "", price: "" }]);
-
-  const addVariantRow = () => setVariants([...variants, { volume: "", price: "" }]);
-  const removeVariantRow = (i: number) => setVariants(variants.filter((_, idx) => idx !== i));
-  const updateVariant = (i: number, field: keyof Variant, value: string) => {
-    const updated = [...variants];
-    updated[i] = { ...updated[i], [field]: value };
-    setVariants(updated);
-  };
 
   const handleAdd = async () => {
     if (!name.trim() || !category) {
       toast.error("Укажите название и категорию");
       return;
     }
-
-    if (useVariants) {
-      const validVariants = variants.filter(v => parseInt(v.price, 10) > 0);
-      if (validVariants.length === 0) {
-        toast.error("Добавьте хотя бы один вариант с ценой");
-        return;
-      }
-    }
-
     setAdding(true);
     const id = name.trim().toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
+    const priceNum = parseInt(price, 10) || null;
 
-    const insertData: any = {
+    const { error } = await supabase.from("menu_items").insert({
       id,
       name: name.trim(),
+      price: priceNum,
       category,
       description: description.trim() || null,
-    };
-
-    if (useVariants) {
-      const validVariants = variants
-        .filter(v => parseInt(v.price, 10) > 0)
-        .map(v => ({
-          price: parseInt(v.price, 10),
-          ...(v.volume.trim() ? { volume: v.volume.trim() } : {}),
-        }));
-      insertData.variants = validVariants;
-    } else {
-      insertData.price = parseInt(price, 10) || null;
-      insertData.volume = volume.trim() || null;
-    }
-
-    const { error } = await supabase.from("menu_items").insert(insertData);
+      volume: volume.trim() || null,
+    });
 
     if (error) {
       toast.error("Ошибка добавления: " + error.message);
@@ -77,8 +41,6 @@ const Admin = () => {
       setPrice("");
       setDescription("");
       setVolume("");
-      setUseVariants(false);
-      setVariants([{ volume: "", price: "" }]);
       refetch();
     }
     setAdding(false);
@@ -129,67 +91,22 @@ const Admin = () => {
           className="w-full bg-muted/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
         />
 
-        {/* Variants toggle */}
-        <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+        <div className="flex gap-2">
           <input
-            type="checkbox"
-            checked={useVariants}
-            onChange={(e) => setUseVariants(e.target.checked)}
-            className="rounded border-border"
+            type="number"
+            placeholder="Цена (сум)"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="flex-1 bg-muted/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
           />
-          Несколько вариантов (объём/цена)
-        </label>
-
-        {useVariants ? (
-          <div className="space-y-2">
-            {variants.map((v, i) => (
-              <div key={i} className="flex gap-2 items-center">
-                <input
-                  type="text"
-                  placeholder="Объём"
-                  value={v.volume}
-                  onChange={(e) => updateVariant(i, "volume", e.target.value)}
-                  className="w-24 bg-muted/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
-                />
-                <input
-                  type="number"
-                  placeholder="Цена (сум) *"
-                  value={v.price}
-                  onChange={(e) => updateVariant(i, "price", e.target.value)}
-                  className="flex-1 bg-muted/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
-                />
-                {variants.length > 1 && (
-                  <button onClick={() => removeVariantRow(i)} className="p-1.5 rounded-lg text-destructive/60 hover:text-destructive hover:bg-destructive/10 transition-colors">
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              onClick={addVariantRow}
-              className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1"
-            >
-              <Plus className="w-3 h-3" /> Ещё вариант
-            </button>
-          </div>
-        ) : (
-          <div className="flex gap-2">
-            <input
-              type="number"
-              placeholder="Цена (сум)"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="flex-1 bg-muted/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
-            />
-            <input
-              type="text"
-              placeholder="Объём"
-              value={volume}
-              onChange={(e) => setVolume(e.target.value)}
-              className="w-24 bg-muted/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
-            />
-          </div>
-        )}
+          <input
+            type="text"
+            placeholder="Объём"
+            value={volume}
+            onChange={(e) => setVolume(e.target.value)}
+            className="w-24 bg-muted/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
+          />
+        </div>
 
         <input
           type="text"
